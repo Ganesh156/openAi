@@ -23,7 +23,7 @@ function typeText(element, text) {
 
   let interval = setInterval(() => {
     if (index < text.length) {
-      element.innerHTML += text.chartAt(index);
+      element.innerHTML += text.charAt(index);
       index++;
     } else {
       clearInterval(interval);
@@ -63,7 +63,7 @@ const handleSubmit = async (e) => {
   const data = new FormData(form);
 
   //user's chatstripe
-  chatContainer.innerHTML += chatStripe(flase, data.get('prompt'));
+  chatContainer.innerHTML += chatStripe(false, data.get('prompt'));
 
   form.reset();
 
@@ -78,6 +78,33 @@ const handleSubmit = async (e) => {
   const messageDiv = document.getElementById(uniqueId);
 
   loader(messageDiv);
+
+  const response = await fetch('http://localhost:3000', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            prompt: data.get('prompt')
+        })
+    })
+
+  clearInterval(loadInterval);
+  messageDiv.innerHTML = '';
+
+  if (response.ok) {
+    const data = await response.json();
+    const parsedData = data.bot.trim();
+
+    console.log(parsedData);
+    typeText(messageDiv, parsedData);
+  } else {
+    const err = await response.text();
+
+    messageDiv.innerHTML = "Something Went Wrong";
+
+    alert(err);
+  }
 }
 
 form.addEventListener('submit', handleSubmit);
